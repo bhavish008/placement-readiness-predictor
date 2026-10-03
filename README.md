@@ -7,6 +7,10 @@ student "ready" or "not ready" for placement, with a small Streamlit interface.
 > is defined by a rule (CGPA of 7.0 or more and at most 1 backlog), so the
 > models relearn that rule. See [DECISIONS.md](DECISIONS.md).
 
+**Live demo:** https://placement-readiness-predictor-6jc2jkcyof26uvyksymbfq.streamlit.app/
+
+![App screenshot] (app_screenshot.png)
+
 ## Run it
 
 ```bash
@@ -28,11 +32,11 @@ streamlit run app.py     # input interface
 
 ## Results (test set, 200 students, "ready" class)
 
-| Model | Precision | Recall | F1 |
-|---|---|---|---|
-| Baseline (always "not ready") | 0.000 | 0.000 | 0.000 |
-| Logistic Regression | 0.984 | 0.969 | 0.976 |
-| Decision Tree (max depth 4) | 1.000 | 1.000 | 1.000 |
+| Model                         | Precision | Recall | F1    |
+| ----------------------------- | --------- | ------ | ----- |
+| Baseline (always "not ready") | 0.000     | 0.000  | 0.000 |
+| Logistic Regression           | 0.984     | 0.969  | 0.976 |
+| Decision Tree (max depth 4)   | 1.000     | 1.000  | 1.000 |
 
 **Why the tree wins:** the label is two hard cutoffs. A tree splits on exactly
 such cutoffs, so it recovers the rule. Logistic Regression draws one smooth
@@ -55,11 +59,11 @@ True label: not ready (CGPA is below 7.0).
 
 Shuffling a column and measuring the drop in F1 (Decision Tree):
 
-| Feature | Drop in F1 |
-|---|---|
-| backlogs | 0.503 |
-| cgpa | 0.406 |
-| course, branch, age | 0.000 |
+| Feature             | Drop in F1 |
+| ------------------- | ---------- |
+| backlogs            | 0.503      |
+| cgpa                | 0.406      |
+| course, branch, age | 0.000      |
 
 The model uses only the two columns the rule is built on, as expected.
 
