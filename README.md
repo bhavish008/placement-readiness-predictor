@@ -9,7 +9,7 @@ student "ready" or "not ready" for placement, with a small Streamlit interface.
 
 **Live demo:** https://placement-readiness-predictor-6jc2jkcyof26uvyksymbfq.streamlit.app/
 
-![App screenshot] (app_screenshot.png)
+![App screenshot](app_screenshot.png)
 
 ## Run it
 
