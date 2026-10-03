@@ -8,8 +8,9 @@ The provided file has 10 columns (`name`, `email`, `gender`, `age`, `course`,
 `other_course`, `branch`, `year`, `cgpa`, `backlogs`). None of them says
 whether a student is placement ready, so there was nothing to train on.
 
-**Change:** a label `ready` was defined as CGPA of 7.0 or more **and** at most
-1 backlog. This marks about 32% of students as ready.
+**Change:** a label `ready` was first defined as CGPA of 7.0 or more **and**
+at most 1 backlog (about 32% of students). This was later replaced by a
+score formula, see decision 7.
 
 **Consequence:** the models are relearning a rule that was written by hand.
 The high scores show that the pipeline works, not that placement readiness can
@@ -28,8 +29,8 @@ data at all.
 | Duplicates removed | 0.961 |
 
 **Change:** duplicates are dropped before the split. The lower score is the
-honest one. (Both figures are from the first feature set, which still
-included `year`.)
+honest one. (Both figures are from the first version: the simple rule label,
+with `year` still a feature.)
 
 ## 3. Blank `backlogs` treated as "0", not as missing
 
@@ -45,8 +46,8 @@ kept as its own category instead of being imputed or dropped.
 
 ## 5. Why F1, precision and recall instead of accuracy
 
-Only about 32% of students are ready. A model that always answers "not ready"
-gets 68% accuracy while finding zero ready students (F1 = 0), which is what
+Only about 23% of students are ready. A model that always answers "not ready"
+gets 77% accuracy while finding zero ready students (F1 = 0), which is what
 the baseline row in the results shows.
 
 ## 6. Change: `year` removed from the features and the app
@@ -56,6 +57,28 @@ because readiness, as defined here, is about academic standing (CGPA and
 backlogs), and the year a student is in does not change that. The importance
 check agreed: shuffling `year` changed F1 by 0.000.
 
-Effect on the test set: Logistic Regression F1 went from 0.961 to 0.976, and
-the Decision Tree stayed at 1.000. One fewer noise column gave the linear
+Effect on the test set (with the simple rule label of decision 1): Logistic
+Regression F1 went from 0.961 to 0.976, and the Decision Tree stayed at 1.000. One fewer noise column gave the linear
 model slightly less to be confused by.
+
+## 7. Change: label now comes from a readiness score, not a flat rule
+
+The flat rule treated a student with CGPA 7.0 and one backlog the same as a
+student with CGPA 9.5 and none. A score lets the two features trade off.
+
+- Not eligible (CGPA below 7.0, or more than 1 backlog): score 0.
+- Eligible: score = 60 + (CGPA - 7) / 3 x 40 - 15 x backlogs.
+- Ready = score of 65 or more.
+
+This works out to CGPA 7.38 or more with no backlogs, or CGPA 8.5 or more
+with one backlog. Ready students dropped from about 32% to about 23%.
+
+**The weights are a judgement call.** 60, 40, 15 and 65 are not derived from
+data, because the data has no placement outcomes to derive them from.
+
+**Rejected alternative:** predicting the score itself. That is regression, and
+the task asks for binary classification.
+
+Effect on the test set: Logistic Regression F1 is 0.989 (it misses one ready
+student out of 46), and the Decision Tree is still 1.000. The label is still
+deterministic, so high scores are still expected.

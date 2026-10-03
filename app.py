@@ -5,7 +5,8 @@ Run:  streamlit run app.py
 import pandas as pd
 import streamlit as st
 
-from train import FEATURES, build_and_train
+from train import (FEATURES, MIN_CGPA, READY_CUTOFF, build_and_train,
+                   readiness_score)
 
 st.set_page_config(page_title="Placement Readiness Predictor")
 
@@ -19,8 +20,8 @@ def get_models():
 df, models = get_models()
 
 st.title("Placement Readiness Predictor")
-st.caption("Label is rule-based (CGPA of 7 or more and at most 1 backlog). "
-           "A demo of the ML pipeline, not real placement advice.")
+st.caption("The label comes from a hand-made readiness score, not from real "
+           "placement outcomes. A demo of the ML pipeline, not placement advice.")
 
 left, right = st.columns(2)
 with left:
@@ -43,10 +44,15 @@ if st.button("Predict", type="primary"):
     else:
         st.error(f"Not ready yet ({prob:.0%} probability of being ready)")
 
-    reasons = []
-    reasons.append(f"CGPA {cgpa:.2f} is "
-                   + ("at or above" if cgpa >= 7 else "below") + " the 7.0 cutoff")
-    reasons.append(f"{backlogs} backlog(s) is "
-                   + ("within" if backlogs in ["0", "1"] else "over")
-                   + " the limit of 1")
-    st.write("Why: " + "; ".join(reasons) + ".")
+    score = readiness_score(cgpa, backlogs)
+    st.metric("Readiness score (formula)", f"{score:.0f} / 100",
+              help=f"Ready means a score of {READY_CUTOFF} or more.")
+    if cgpa < MIN_CGPA:
+        st.write(f"Why: CGPA {cgpa:.2f} is below the minimum of {MIN_CGPA}.")
+    elif backlogs not in ["0", "1"]:
+        st.write(f"Why: {backlogs} backlogs is over the limit of 1.")
+    else:
+        side = "reaches" if score >= READY_CUTOFF else "falls short of"
+        st.write(f"Why: eligible, and the score of {score:.0f} {side} the "
+                 f"cutoff of {READY_CUTOFF}. One backlog costs 15 points, "
+                 "so it needs a higher CGPA to make up for it.")

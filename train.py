@@ -30,9 +30,22 @@ CATEGORICAL = ["backlogs", "course", "branch"]
 FEATURES = NUMERIC + CATEGORICAL
 TARGET = "ready"
 
-# The readiness rule (see DECISIONS.md, decision 1).
-CGPA_CUTOFF = 7.0
-ALLOWED_BACKLOGS = ["0", "1"]
+# The readiness formula (see DECISIONS.md, decisions 1 and 7).
+MIN_CGPA = 7.0             # below this, not eligible at all
+MAX_BACKLOGS = 1           # more than this, not eligible at all
+BASE_SCORE = 60            # score of an eligible student at exactly CGPA 7
+CGPA_POINTS = 40           # extra points earned going from CGPA 7 to 10
+BACKLOG_PENALTY = 15       # points lost for having one backlog
+READY_CUTOFF = 65          # ready if the score reaches this
+
+
+def readiness_score(cgpa, backlogs):
+    """Hand-made readiness score from 0 to 100. Not a real probability."""
+    if cgpa < MIN_CGPA or backlogs not in ["0", "1"]:
+        return 0.0
+    score = (BASE_SCORE + (cgpa - MIN_CGPA) / (10 - MIN_CGPA) * CGPA_POINTS
+             - BACKLOG_PENALTY * int(backlogs))
+    return round(score, 2)
 
 
 def load_and_clean(path=DATA_PATH):
@@ -61,8 +74,10 @@ def load_and_clean(path=DATA_PATH):
     df = df.drop(columns=["name", "email", "other_course", "gender", "year"])
 
     # The dataset has NO target column, so we define one with a clear rule.
-    df[TARGET] = ((df["cgpa"] >= CGPA_CUTOFF)
-                  & (df["backlogs"].isin(ALLOWED_BACKLOGS))).astype(int)
+    # Each student gets a score from the formula, and "ready" means the
+    # score reaches the cutoff. The score itself is NOT given to the model.
+    scores = [readiness_score(c, b) for c, b in zip(df["cgpa"], df["backlogs"])]
+    df[TARGET] = (pd.Series(scores) >= READY_CUTOFF).astype(int)
     return df
 
 
