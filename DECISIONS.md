@@ -82,3 +82,30 @@ the task asks for binary classification.
 Effect on the test set: Logistic Regression F1 is 0.989 (it misses one ready
 student out of 46), and the Decision Tree is still 1.000. The label is still
 deterministic, so high scores are still expected.
+
+## 8. Change: probability removed from the app's result
+
+The app first showed the model's probability next to the formula score, for
+example "Ready for placement (100% probability)" above "72 / 100". Two
+different numbers for the same student were confusing: the 100% was the
+Decision Tree's confidence, and the 72 was the formula's score.
+
+**Change:** the app now shows only the verdict and the score. The verdict
+line names the model ("Decision Tree says: Ready for placement") so it is
+clear that the verdict comes from the trained model and the score comes from
+the formula.
+
+**Trade-off:** the probability was the only sign of how sure the model was.
+Logistic Regression's borderline cases (for example 50.1%) are no longer
+visible in the app. They are still printed by `train.py`.
+
+## 9. Addition: warning when the model and the formula disagree
+
+With the probability gone, the app could show "Ready" beside a score below
+65 with no explanation. This happens with Logistic Regression for students
+just under a cutoff, for example CGPA 8.4 with one backlog (score 64, model
+says ready) or CGPA 7.3 with no backlogs (score 64, model says ready).
+
+**Change:** the app shows a short warning whenever the model's verdict and
+the formula's verdict differ. The Decision Tree did not disagree with the
+formula in any case tested.

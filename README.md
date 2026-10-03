@@ -7,10 +7,6 @@ student "ready" or "not ready" for placement, with a small Streamlit interface.
 > comes from a hand-made readiness score built on CGPA and backlogs, so the
 > models relearn that formula. See [DECISIONS.md](DECISIONS.md).
 
-**Live demo:** https://placement-readiness-predictor-6jc2jkcyof26uvyksymbfq.streamlit.app/
-
-![App screenshot](app_screenshot.png)
-
 ## Run it
 
 ```bash
@@ -33,10 +29,10 @@ streamlit run app.py     # input interface
 
 ## Readiness score
 
-| Case                                   | Score                                    |
-| -------------------------------------- | ---------------------------------------- |
-| CGPA below 7.0, or more than 1 backlog | 0 (not eligible)                         |
-| Otherwise                              | 60 + (CGPA - 7) / 3 x 40 - 15 x backlogs |
+| Case | Score |
+|---|---|
+| CGPA below 7.0, or more than 1 backlog | 0 (not eligible) |
+| Otherwise | 60 + (CGPA - 7) / 3 x 40 - 15 x backlogs |
 
 Ready means a score of 65 or more. In practice: CGPA 7.38 or more with no
 backlogs, or CGPA 8.5 or more with one backlog. The weights (60, 40, 15) and
@@ -45,11 +41,11 @@ being placed, and it is never shown to the model as a feature.
 
 ## Results (test set, 200 students, "ready" class)
 
-| Model                         | Precision | Recall | F1    |
-| ----------------------------- | --------- | ------ | ----- |
-| Baseline (always "not ready") | 0.000     | 0.000  | 0.000 |
-| Logistic Regression           | 1.000     | 0.978  | 0.989 |
-| Decision Tree (max depth 4)   | 1.000     | 1.000  | 1.000 |
+| Model | Precision | Recall | F1 |
+|---|---|---|---|
+| Baseline (always "not ready") | 0.000 | 0.000 | 0.000 |
+| Logistic Regression | 1.000 | 0.978 | 0.989 |
+| Decision Tree (max depth 4) | 1.000 | 1.000 | 1.000 |
 
 **Why the tree wins:** the label is a set of hard cutoffs (CGPA 7.38 with no
 backlogs, CGPA 8.5 with one). A tree splits on exactly such cutoffs, so it
@@ -73,11 +69,11 @@ Score: 60 + 1.07 - 15 = 46, below the cutoff of 65. True label: not ready.
 
 Shuffling a column and measuring the drop in F1 (Decision Tree):
 
-| Feature             | Drop in F1 |
-| ------------------- | ---------- |
-| cgpa                | 0.566      |
-| backlogs            | 0.549      |
-| course, branch, age | 0.000      |
+| Feature | Drop in F1 |
+|---|---|
+| cgpa | 0.566 |
+| backlogs | 0.549 |
+| course, branch, age | 0.000 |
 
 The model uses only the two columns the formula is built on, as expected.
 

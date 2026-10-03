@@ -38,11 +38,12 @@ model_name = st.radio("Model", ["Decision Tree", "Logistic Regression"],
 if st.button("Predict", type="primary"):
     student = pd.DataFrame([{"cgpa": cgpa, "age": age, "backlogs": backlogs,
                              "course": course, "branch": branch}])[FEATURES]
-    prob = models[model_name].predict_proba(student)[0, 1]
-    if prob >= 0.5:
-        st.success(f"Ready for placement ({prob:.0%} probability)")
+    # The verdict comes from the trained model, the score from the formula.
+    is_ready = models[model_name].predict(student)[0] == 1
+    if is_ready:
+        st.success(f"{model_name} says: Ready for placement")
     else:
-        st.error(f"Not ready yet ({prob:.0%} probability of being ready)")
+        st.error(f"{model_name} says: Not ready yet")
 
     score = readiness_score(cgpa, backlogs)
     st.metric("Readiness score (formula)", f"{score:.0f} / 100",
@@ -56,3 +57,6 @@ if st.button("Predict", type="primary"):
         st.write(f"Why: eligible, and the score of {score:.0f} {side} the "
                  f"cutoff of {READY_CUTOFF}. One backlog costs 15 points, "
                  "so it needs a higher CGPA to make up for it.")
+    if is_ready != (score >= READY_CUTOFF):
+        st.warning("The model disagrees with the formula here. This student "
+                   "sits close to a cutoff, where the model can be wrong.")
